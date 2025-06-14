@@ -30,7 +30,7 @@ if not os.path.exists(MODEL_PATH):
     download_model()
 
 # ----------------- LOAD MODEL -----------------
-@st.cache_resource
+@st.cache_resource(show_spinner="Loading model...")
 def load_model():
     return tf.keras.models.load_model(MODEL_PATH, compile=False)
 
@@ -71,6 +71,8 @@ uploaded_file = st.file_uploader("Upload a driving image", type=["jpg", "jpeg", 
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
+    image.thumbnail((512, 512), Image.BILINEAR)
+    
     st.image(image, caption="📷 Uploaded Image", width=512)
 
     with st.spinner("Segmenting image..."):
