@@ -62,7 +62,7 @@ def overlay_mask_with_edges(original_resized, mask):
     combined = cv2.addWeighted(mask_colored, 0.8, edge_overlay, 1.0, 0)
 
     # Blend with original image (light context)
-    blended = cv2.addWeighted(np.array(original_resized), 0.2, combined, 0.8, 0)
+    blended = cv2.addWeighted(np.array(original_resized), 0.25, combined, 0.75, 0)
 
     return blended
 
