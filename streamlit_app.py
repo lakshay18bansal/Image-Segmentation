@@ -36,51 +36,35 @@ def load_model():
 
 model = load_model()
 
-# ----------------- PREPROCESS INPUT -----------------
-def preprocess_image(image, target_size=(256, 256)):
-    original_size = image.size  # (width, height)
-    image_resized = image.resize(target_size, Image.BILINEAR)
+# ----------------- SEGMENTATION -----------------
+def perform_image_seg(model, pil_image, input_size=256):
+    image = pil_image.convert('RGB')
+    image_resized = image.resize((input_size, input_size), Image.BILINEAR)
     image_np = np.array(image_resized).astype(np.float32) / 255.0
-    return image_np, original_size
+    image_tf = tf.convert_to_tensor(np.expand_dims(image_np, axis=0), dtype=tf.float32)
+    pred_logits = model.predict(image_tf)
+    pred_mask = tf.argmax(pred_logits, axis=-1).numpy()[0]  # (256, 256)
+    return pred_mask, image_resized
 
-# ----------------- POSTPROCESS MASK -----------------
-def postprocess_mask(mask, original_size):
-    mask_uint8 = (mask * 255).astype(np.uint8)
-    mask_resized = cv2.resize(mask_uint8, original_size, interpolation=cv2.INTER_NEAREST)
-    return mask_resized
-
-# ----------------- OVERLAY MASK WITH EDGE FUSION -----------------
-def overlay_mask_on_image(image, mask):
-    image_np = np.array(image)
-
-    # Step 1: Colorize segmentation mask using Jet colormap
-    mask_colored = cm.get_cmap('jet')(mask / 255.0)[:, :, :3]
+# ----------------- OVERLAY FUNCTION -----------------
+def overlay_mask_with_edges(original_resized, mask):
+    # Colorize mask using jet colormap
+    mask_colored = cm.get_cmap('jet')(mask / mask.max())[:, :, :3]
     mask_colored = (mask_colored * 255).astype(np.uint8)
 
-    # Step 2: Detect edges from original image
-    gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
-    edges = cv2.Canny(gray, threshold1=100, threshold2=200)
+    # Compute edges on original image
+    gray = cv2.cvtColor(np.array(original_resized), cv2.COLOR_RGB2GRAY)
+    edges = cv2.Canny(gray, 100, 200)
+    edge_overlay = np.zeros_like(mask_colored)
+    edge_overlay[edges > 0] = [255, 0, 0]  # Red
 
-    # Step 3: Convert edges to red overlay
-    edges_colored = np.zeros_like(image_np)
-    edges_colored[edges > 0] = [255, 0, 0]  # Red edges
+    # Combine mask and edges
+    combined = cv2.addWeighted(mask_colored, 0.8, edge_overlay, 1.0, 0)
 
-    # Step 4: Combine mask and edge overlay
-    combined = cv2.addWeighted(mask_colored, 0.8, edges_colored, 1.0, 0)
+    # Blend with original image (light context)
+    blended = cv2.addWeighted(np.array(original_resized), 0.2, combined, 0.8, 0)
 
-    # Step 5: Lightly blend with original image to retain texture
-    final_overlay = cv2.addWeighted(image_np, 0.2, combined, 0.8, 0)
-
-    return final_overlay
-
-# ----------------- SEGMENTATION FUNCTION -----------------
-def perform_segmentation(model, image):
-    preprocessed, original_size = preprocess_image(image)
-    image_tf = tf.convert_to_tensor(np.expand_dims(preprocessed, axis=0), dtype=tf.float32)
-    pred_logits = model.predict(image_tf)
-    pred_mask = tf.argmax(pred_logits, axis=-1).numpy()[0]
-    resized_mask = postprocess_mask(pred_mask, original_size)
-    return resized_mask
+    return blended
 
 # ----------------- STREAMLIT UI -----------------
 uploaded_file = st.file_uploader("Upload a driving image", type=["jpg", "jpeg", "png", "webp"])
@@ -90,12 +74,11 @@ if uploaded_file:
     st.image(image, caption="📷 Uploaded Image", width=512)
 
     with st.spinner("Segmenting image..."):
-        mask = perform_segmentation(model, image)
-
-    overlay = overlay_mask_on_image(image, mask)
+        mask, resized_img = perform_image_seg(model, image)
+        overlay = overlay_mask_with_edges(resized_img, mask)
 
     st.markdown("### 🎯 Segmentation Output")
-    st.image(overlay, caption="Overlayed Prediction with Edges", width=512)
+    st.image(overlay, caption="Overlayed Prediction with Edges (256×256)", width=512)
 
     st.download_button(
         label="Download Result",
