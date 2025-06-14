@@ -19,8 +19,8 @@ DRIVE_FILE_ID = "1kaNa4emUrrYIDKQkXIdFU_FAgpZr8Sed"
 def download_model():
     import gdown
     url = f"https://drive.google.com/uc?id={DRIVE_FILE_ID}"
-    st.info("📥 Downloading model file from Google Drive...")
-    gdown.download(url, MODEL_PATH, quiet=False)
+    with st.spinner("📥 Downloading model file from Google Drive..."):
+        gdown.download(url, MODEL_PATH, quiet=False)
 
 if not os.path.exists(MODEL_PATH):
     try:
@@ -71,7 +71,7 @@ if uploaded_file:
     overlay = cv2.addWeighted(image_np, 0.4, colored_mask, 0.6, 10)
 
     st.markdown("### 🎯 Segmentation Output")
-    st.image(overlay, caption="Overlayed Prediction", width=512)
+    st.image(overlay, caption="Overlayed Prediction", use_container_width=True)
 
     st.download_button(
         label="Download Result",
