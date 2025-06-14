@@ -11,15 +11,30 @@ st.set_page_config(page_title="Self-Driving Car Segmentation", layout="centered"
 st.markdown("<h1 style='text-align: center;'>🚘 Road Scene Segmentation</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Upload a car camera image to view segmentation output.</p>", unsafe_allow_html=True)
 
-# ----------------- MODEL PATH -----------------
+# ----------------- DOWNLOAD MODEL FROM GOOGLE DRIVE -----------------
 MODEL_PATH = "deeplabv3_model.onnx"
+DRIVE_FILE_ID = "1MRBng1vQffR4Z2hoFjcmFcMNQWeFozdg"
 
-# ----------------- LOAD ONNX MODEL -----------------
+def download_model():
+    import gdown
+    url = f"https://drive.google.com/uc?id={DRIVE_FILE_ID}"
+    st.info("📥Downloading files...")
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+if not os.path.exists(MODEL_PATH):
+    try:
+        import gdown
+    except ImportError:
+        os.system("pip install gdown")
+        import gdown
+    download_model()
+
+# ----------------- LOAD MODEL -----------------
 @st.cache_resource(show_spinner="Loading...")
 def load_model():
     return ort.InferenceSession(MODEL_PATH)
 
-session = load_model()
+model = load_model()
 
 # ----------------- SEGMENTATION FUNCTION -----------------
 def perform_image_seg(model, pil_image, input_size=256):
