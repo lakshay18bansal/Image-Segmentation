@@ -1,8 +1,6 @@
-streamlit
-tensorflow==2.13.0
-torch
-torchvision
-gdown
-opencv-python
+numpy
 pillow
 matplotlib
+streamlit
+opencv-python-headless
+tensorflow
