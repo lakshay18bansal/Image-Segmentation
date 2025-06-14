@@ -49,13 +49,29 @@ def postprocess_mask(mask, original_size):
     mask_resized = cv2.resize(mask_uint8, original_size, interpolation=cv2.INTER_NEAREST)
     return mask_resized
 
-# ----------------- OVERLAY MASK -----------------
+# ----------------- OVERLAY MASK WITH EDGE FUSION -----------------
 def overlay_mask_on_image(image, mask):
     image_np = np.array(image)
+
+    # Step 1: Colorize segmentation mask using Jet colormap
     mask_colored = cm.get_cmap('jet')(mask / 255.0)[:, :, :3]
     mask_colored = (mask_colored * 255).astype(np.uint8)
-    overlay = cv2.addWeighted(image_np, 0.3, mask_colored, 0.7, 0)
-    return overlay
+
+    # Step 2: Detect edges from original image
+    gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
+    edges = cv2.Canny(gray, threshold1=100, threshold2=200)
+
+    # Step 3: Convert edges to red overlay
+    edges_colored = np.zeros_like(image_np)
+    edges_colored[edges > 0] = [255, 0, 0]  # Red edges
+
+    # Step 4: Combine mask and edge overlay
+    combined = cv2.addWeighted(mask_colored, 0.8, edges_colored, 1.0, 0)
+
+    # Step 5: Lightly blend with original image to retain texture
+    final_overlay = cv2.addWeighted(image_np, 0.2, combined, 0.8, 0)
+
+    return final_overlay
 
 # ----------------- SEGMENTATION FUNCTION -----------------
 def perform_segmentation(model, image):
@@ -79,7 +95,7 @@ if uploaded_file:
     overlay = overlay_mask_on_image(image, mask)
 
     st.markdown("### 🎯 Segmentation Output")
-    st.image(overlay, caption="Overlayed Prediction", width=512)
+    st.image(overlay, caption="Overlayed Prediction with Edges", width=512)
 
     st.download_button(
         label="Download Result",
