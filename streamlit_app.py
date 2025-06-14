@@ -40,13 +40,12 @@ model = load_model()
 def perform_image_seg(model, pil_image, input_size=256):
     image = pil_image.convert('RGB')
     image_resized = image.resize((input_size, input_size), Image.BILINEAR)
-    image_np = np.array(image_resized).astype(np.float32) / 255.0
-    image_np = np.transpose(image_np, (2, 0, 1))  # HWC to CHW
-    image_np = np.expand_dims(image_np, axis=0)  # (1, 3, H, W)
+    image_np = np.array(image_resized).astype(np.float32) / 255.0  # (H, W, C)
+    input_tensor = np.expand_dims(image_np, axis=0)  # (1, 256, 256, 3)
 
-    inputs = {model.get_inputs()[0].name: image_np}
-    pred_logits = model.run(None, inputs)[0]
-    pred_mask = np.argmax(pred_logits, axis=1)[0]  # (256, 256)
+    input_name = model.get_inputs()[0].name
+    output = model.run(None, {input_name: input_tensor})[0]  # (1, 256, 256, 35)
+    pred_mask = np.argmax(output, axis=-1)[0]  # (256, 256)
     return pred_mask, image_resized
 
 # ----------------- OVERLAY FUNCTION -----------------
