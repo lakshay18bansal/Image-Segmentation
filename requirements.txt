@@ -1,9 +1,7 @@
 streamlit
-tensorflow
-torch
-torchvision
 Pillow
 numpy
 opencv-python
 matplotlib
 gdown
+onnxruntime
