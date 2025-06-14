@@ -41,12 +41,26 @@ def perform_image_seg(model, pil_image, input_size=256):
     image = pil_image.convert('RGB')
     image_resized = image.resize((input_size, input_size), Image.BILINEAR)
     image_np = np.array(image_resized).astype(np.float32) / 255.0  # (H, W, C)
-    input_tensor = np.expand_dims(image_np, axis=0)  # (1, 256, 256, 3)
+
+    # Reshape to NHWC: [1, 256, 256, 3]
+    input_tensor = np.expand_dims(image_np, axis=0)
 
     input_name = model.get_inputs()[0].name
-    output = model.run(None, {input_name: input_tensor})[0]  # (1, 256, 256, 35)
+
+    # Log actual shape
+    st.write("Input tensor shape:", input_tensor.shape)
+    st.write("Expected shape:", model.get_inputs()[0].shape)
+
+    try:
+        output = model.run(None, {input_name: input_tensor})[0]  # (1, 256, 256, num_classes)
+    except Exception as e:
+        st.error("ONNX model inference failed:")
+        st.exception(e)
+        raise e
+
     pred_mask = np.argmax(output, axis=-1)[0]  # (256, 256)
     return pred_mask, image_resized
+
 
 # ----------------- OVERLAY FUNCTION -----------------
 def overlay_mask_with_edges(original_resized, mask):
