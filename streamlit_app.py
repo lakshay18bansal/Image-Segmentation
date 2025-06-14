@@ -61,7 +61,7 @@ def overlay_mask_with_edges(original_resized, mask):
     edge_overlay = np.zeros_like(mask_colored)
     edge_overlay[edges > 0] = [255, 0, 0]
 
-    combined = cv2.addWeighted(mask_colored, 0.8, edge_overlay, 0.5, 0)
+    combined = cv2.addWeighted(mask_colored, 0.8, edge_overlay, 1.0, 0)
     blended = cv2.addWeighted(np.array(original_resized), 0.25, combined, 0.75, 0)
     return blended
 
