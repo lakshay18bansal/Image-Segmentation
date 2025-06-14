@@ -80,7 +80,7 @@ if uploaded_file:
         overlay = overlay_mask_with_edges(resized_img, mask)
 
     st.markdown("### 🎯 Segmentation Output")
-    st.image(overlay, caption="Overlayed Prediction with Edges (256×256)", width=512)
+    st.image(overlay, caption="Overlayed Prediction with Edges (512×512)", width=512)
 
     st.download_button(
         label="Download Result",
