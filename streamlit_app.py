@@ -44,9 +44,6 @@ def perform_image_seg(model, pil_image, input_size=256):
     image_np = np.array(image_resized).astype(np.float32) / 255.0
     input_tensor = np.expand_dims(image_np, axis=0).astype(np.float32)
 
-    st.write("📐 Input shape to model:", input_tensor.shape)
-    st.write("📐 Input dtype:", input_tensor.dtype)
-
     input_name = model.get_inputs()[0].name
     output = model.run(None, {input_name: input_tensor})[0]
 
