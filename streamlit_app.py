@@ -71,7 +71,7 @@ uploaded_file = st.file_uploader("Upload a driving image", type=["jpg", "jpeg", 
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="📷 Uploaded Image", use_column_width=True)
+    st.image(image, caption="📷 Uploaded Image", width=512)
 
     with st.spinner("Segmenting image..."):
         mask = perform_segmentation(model, image)
@@ -79,7 +79,7 @@ if uploaded_file:
     overlay = overlay_mask_on_image(image, mask)
 
     st.markdown("### 🎯 Segmentation Output")
-    st.image(overlay, caption="Overlayed Prediction", use_column_width=True)
+    st.image(overlay, caption="Overlayed Prediction", width=512)
 
     st.download_button(
         label="Download Result",
