@@ -1,8 +1,8 @@
-streamlit==1.45.1
-tensorflow==2.15.0
-torch==2.3.0
-torchvision==0.18.0
+streamlit
+tensorflow==2.13.0
+torch
+torchvision
 gdown
-Pillow
-opencv-python-headless
+opencv-python
+pillow
 matplotlib
