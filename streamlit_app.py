@@ -78,7 +78,7 @@ if uploaded_file:
     st.image(image, caption="📷 Uploaded Image", width=512)
 
     with st.spinner("Segmenting image..."):
-        mask, resized_img = perform_image_seg(session, image)
+        mask, resized_img = perform_image_seg(model, image)
         overlay = overlay_mask_with_edges(resized_img, mask)
 
     st.markdown("### 🎯 Segmentation Output")
