@@ -12,13 +12,13 @@ st.markdown("<h1 style='text-align: center;'>🚘 Road Scene Segmentation</h1>",
 st.markdown("<p style='text-align: center;'>Upload a car camera image to view segmentation output.</p>", unsafe_allow_html=True)
 
 # ----------------- DOWNLOAD MODEL FROM GOOGLE DRIVE -----------------
-MODEL_PATH = "deeplabv3_epoch_100.h5"
-DRIVE_FILE_ID = "1kaNa4emUrrYIDKQkXIdFU_FAgpZr8Sed"
+MODEL_PATH = "deeplabv3_model.onxx"
+DRIVE_FILE_ID = "1MRBng1vQffR4Z2hoFjcmFcMNQWeFozdg"
 
 def download_model():
     import gdown
     url = f"https://drive.google.com/uc?id={DRIVE_FILE_ID}"
-    st.info("📥Loading...")
+    st.info("📥Downloading files...")
     gdown.download(url, MODEL_PATH, quiet=False)
 
 if not os.path.exists(MODEL_PATH):
@@ -30,7 +30,7 @@ if not os.path.exists(MODEL_PATH):
     download_model()
 
 # ----------------- LOAD MODEL -----------------
-@st.cache_resource(show_spinner="Loading model...")
+@st.cache_resource(show_spinner="Loading...")
 def load_model():
     return tf.keras.models.load_model(MODEL_PATH, compile=False)
 
