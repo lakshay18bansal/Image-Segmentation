@@ -22,16 +22,22 @@ def load_model():
 session = load_model()
 
 # ----------------- SEGMENTATION FUNCTION -----------------
-def perform_image_seg(session, pil_image, input_size=256):
+def perform_image_seg(model, pil_image, input_size=256):
     image = pil_image.convert('RGB')
     image_resized = image.resize((input_size, input_size), Image.BILINEAR)
+    
     image_np = np.array(image_resized).astype(np.float32) / 255.0
-    input_tensor = np.expand_dims(image_np, axis=0)  # (1, 256, 256, 3)
+    input_tensor = np.expand_dims(image_np, axis=0).astype(np.float32)
 
-    input_name = session.get_inputs()[0].name
-    pred_logits = session.run(None, {input_name: input_tensor})[0]
-    pred_mask = np.argmax(pred_logits, axis=-1)[0]  # (256, 256)
+    st.write("📐 Input shape to model:", input_tensor.shape)
+    st.write("📐 Input dtype:", input_tensor.dtype)
+
+    input_name = model.get_inputs()[0].name
+    output = model.run(None, {input_name: input_tensor})[0]
+
+    pred_mask = np.argmax(output, axis=-1)[0]
     return pred_mask, image_resized
+
 
 # ----------------- OVERLAY FUNCTION -----------------
 def overlay_mask_with_edges(original_resized, mask):
