@@ -54,7 +54,7 @@ def overlay_mask_on_image(image, mask):
     image_np = np.array(image)
     mask_colored = cm.get_cmap('jet')(mask / 255.0)[:, :, :3]
     mask_colored = (mask_colored * 255).astype(np.uint8)
-    overlay = cv2.addWeighted(image_np, 0.2, mask_colored, 0.8, 10)
+    overlay = cv2.addWeighted(image_np, 0.3, mask_colored, 0.7, 0)
     return overlay
 
 # ----------------- SEGMENTATION FUNCTION -----------------
