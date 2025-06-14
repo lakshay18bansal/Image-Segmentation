@@ -71,7 +71,7 @@ if uploaded_file:
     overlay = cv2.addWeighted(image_np, 0.4, colored_mask, 0.6, 10)
 
     st.markdown("### 🎯 Segmentation Output")
-    st.image(overlay, caption="Overlayed Prediction", width=256)
+    st.image(overlay, caption="Overlayed Prediction", width=512)
 
     st.download_button(
         label="Download Result",
