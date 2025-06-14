@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from PIL import Image
 import numpy as np
-import tensorflow as tf
+import onnxruntime as ort
 import cv2
 import matplotlib.cm as cm
 
@@ -12,7 +12,7 @@ st.markdown("<h1 style='text-align: center;'>🚘 Road Scene Segmentation</h1>",
 st.markdown("<p style='text-align: center;'>Upload a car camera image to view segmentation output.</p>", unsafe_allow_html=True)
 
 # ----------------- DOWNLOAD MODEL FROM GOOGLE DRIVE -----------------
-MODEL_PATH = "deeplabv3_model.onxx"
+MODEL_PATH = "deeplabv3_model.onnx"
 DRIVE_FILE_ID = "1MRBng1vQffR4Z2hoFjcmFcMNQWeFozdg"
 
 def download_model():
@@ -32,7 +32,7 @@ if not os.path.exists(MODEL_PATH):
 # ----------------- LOAD MODEL -----------------
 @st.cache_resource(show_spinner="Loading...")
 def load_model():
-    return tf.keras.models.load_model(MODEL_PATH, compile=False)
+    return ort.InferenceSession(MODEL_PATH)
 
 model = load_model()
 
@@ -41,9 +41,12 @@ def perform_image_seg(model, pil_image, input_size=256):
     image = pil_image.convert('RGB')
     image_resized = image.resize((input_size, input_size), Image.BILINEAR)
     image_np = np.array(image_resized).astype(np.float32) / 255.0
-    image_tf = tf.convert_to_tensor(np.expand_dims(image_np, axis=0), dtype=tf.float32)
-    pred_logits = model.predict(image_tf)
-    pred_mask = tf.argmax(pred_logits, axis=-1).numpy()[0]  # (256, 256)
+    image_np = np.transpose(image_np, (2, 0, 1))  # HWC to CHW
+    image_np = np.expand_dims(image_np, axis=0)  # (1, 3, H, W)
+
+    inputs = {model.get_inputs()[0].name: image_np}
+    pred_logits = model.run(None, inputs)[0]
+    pred_mask = np.argmax(pred_logits, axis=1)[0]  # (256, 256)
     return pred_mask, image_resized
 
 # ----------------- OVERLAY FUNCTION -----------------
